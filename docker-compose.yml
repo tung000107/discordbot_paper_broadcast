@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Redis cache service
+  redis:
+    image: redis:7-alpine
+    container_name: dra-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - dra-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Discord bot service
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dra-bot
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./src:/app/src
+    networks:
+      - dra-net
+    restart: unless-stopped
+
+  # Optional: vLLM service for self-hosted LLM
+  # Uncomment to use local vLLM instead of OpenAI API
+  # vllm:
+  #   image: vllm/vllm-openai:latest
+  #   container_name: dra-vllm
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - vllm-cache:/root/.cache/huggingface
+  #   networks:
+  #     - dra-net
+  #   command: >
+  #     --model meta-llama/Llama-3.1-8B-Instruct
+  #     --gpu-memory-utilization 0.9
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/v1/models"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+networks:
+  dra-net:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+  # vllm-cache:
+  #   driver: local
