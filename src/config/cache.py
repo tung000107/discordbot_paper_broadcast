@@ -91,7 +91,7 @@ class RedisCache:
         await self.client.setex(
             key,
             self.TTL_METADATA,
-            json.dumps(metadata)
+            json.dumps(metadata, ensure_ascii=False)
         )
         logger.debug("cache_set", key=key, type="metadata", ttl=self.TTL_METADATA.total_seconds())
 
@@ -128,7 +128,7 @@ class RedisCache:
         await self.client.setex(
             key,
             self.TTL_SUMMARY,
-            json.dumps(summary)
+            json.dumps(summary, ensure_ascii=False)
         )
         logger.debug("cache_set", key=key, type="summary", ttl=self.TTL_SUMMARY.total_seconds())
 
@@ -165,7 +165,7 @@ class RedisCache:
         await self.client.setex(
             key,
             self.TTL_PDF,
-            json.dumps(pdf_info)
+            json.dumps(pdf_info, ensure_ascii=False)
         )
         logger.debug("cache_set", key=key, type="pdf", ttl=self.TTL_PDF.total_seconds())
 
@@ -198,7 +198,7 @@ class RedisCache:
         await self.client.setex(
             key,
             self.TTL_CITATIONS,
-            json.dumps(citations)
+            json.dumps(citations, ensure_ascii=False)
         )
         logger.debug("cache_set", key=key, type="citations", ttl=self.TTL_CITATIONS.total_seconds())
 
